@@ -1,13 +1,16 @@
-package br.com.l4e.vagas.model.entity;
+package br.com.l4e.vagas.model;
 
-import javax.persistence.Column;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,16 +31,15 @@ public class Colaborador {
     
     private String cpf;
     
-    @Column(name = "cargo_atual")
     private String cargoAtual;
     
-    @Column(name = "area_atual")
     private String areaAtual;
     
     private String email;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "vaga_id")
+    @JsonIgnore
     private Vaga vaga;
 
     public Colaborador(String nome, String cpf, String cargoAtual, String areaAtual, String email, Vaga vaga) {

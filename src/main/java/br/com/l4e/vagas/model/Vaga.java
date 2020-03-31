@@ -1,15 +1,21 @@
-package br.com.l4e.vagas.model.entity;
+package br.com.l4e.vagas.model;
 
 import java.time.LocalDate;
-import java.util.Set;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+import org.springframework.format.annotation.DateTimeFormat;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -34,13 +40,15 @@ public class Vaga {
 
     private String tipo;
 
-    @Column(name = "data_vencimento")
+    @DateTimeFormat(pattern = "dd-MM-yyyy")
+    @JsonFormat(pattern = "dd-MM-yyyy")
     private LocalDate dataVencimento;
 
-    private String situacao;
+    private String situacao = "Aberta";
 
-    @OneToMany(mappedBy = "vaga")
-    private Set<Colaborador> colaboradores;
+    @OneToMany(mappedBy = "vaga", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @Column(nullable = true)
+    private List<Colaborador> candidatos;
 
     public Vaga(String cargo, String descricao, String locacao, String tipo, LocalDate dataVencimento, String situacao) {
         this.cargo = cargo;

@@ -1,10 +1,9 @@
 package br.com.l4e.vagas.api.controller;
 
-import java.util.List;
+import javax.validation.Valid;
 
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,64 +11,63 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
-import br.com.l4e.vagas.model.entity.Vaga;
-import br.com.l4e.vagas.model.repository.Vagas;
+import br.com.l4e.vagas.model.Vaga;
+import br.com.l4e.vagas.service.VagaService;
 
 @RestController
 @RequestMapping("/api/vagas")
 public class VagasController {
 
-    private Vagas vagas;
+    @Autowired
+    private VagaService service;
 
-    public VagasController(Vagas vagas) {
-        this.vagas = vagas;
+    @GetMapping
+    public ResponseEntity<?> get() {
+        try {
+            return ResponseEntity.ok(service.findAll());
+        } catch(Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/{id}")
-    public Vaga one(@PathVariable Integer id) {
-        return vagas
-            .findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vaga não encontrada"));
+    public ResponseEntity<?> getById(@PathVariable Integer id) {
+        try {
+            return ResponseEntity.ok(service.findById(id).get());
+        } catch(Exception e) {
+            return ResponseEntity.notFound().build(); 
+        }
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Vaga save(@RequestBody Vaga vaga) {
-        return vagas.save(vaga);
+    public ResponseEntity<?> post(@RequestBody Vaga vaga) {
+        try {
+            return ResponseEntity.ok(service.save(vaga));
+        } catch(Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> put(@PathVariable Integer id, @Valid @RequestBody Vaga vaga) {
+        try {
+            return ResponseEntity.ok(service.save(vaga));
+        } catch(Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Integer id) {
-        vagas.findById(id)
-            .map(colab -> {
-                vagas.delete(colab);
-                return colab;
-            })
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado"));
+    public ResponseEntity<?> delete(@PathVariable Integer id) {
+        try {
+            service.delete(id);
+            return ResponseEntity.ok().build();
+        } catch(Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
-    @PutMapping("{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void update(@PathVariable Integer id, @RequestBody Vaga vaga) {
-        vagas
-            .findById(id)
-            .map(colab -> {
-                vaga.setId(colab.getId());
-                vagas.save(vaga);
-                return colab;
-            })
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente não encontrado"));
-    }
-
-    @GetMapping
-    public List<Vaga> find(Vaga filtro){
-        ExampleMatcher matcher = ExampleMatcher.matching().withIgnoreCase().withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);
-        Example<Vaga> example = Example.of(filtro, matcher);
-        return vagas.findAll(example);
-    }
 }
